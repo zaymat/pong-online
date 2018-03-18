@@ -53,10 +53,7 @@ func main() {
 	// Handle messages from Websocket
 	go ws.handleMessages()
 
-	// Handle game events
-	go ws.handleEvents()
-
-	// Run game
+	// hangle game events
 	go ws.game()
 
 	http.Handle("/", r)
