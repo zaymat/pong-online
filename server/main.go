@@ -56,7 +56,8 @@ func main() {
 	// Handle game events
 	go ws.handleEvents()
 
-	//
+	// Run game
+	go ws.game()
 
 	http.Handle("/", r)
 	fmt.Println("Server listening on port 8080 ...")
