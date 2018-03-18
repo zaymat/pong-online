@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,20 +44,24 @@ func (socket *WebSocket) handleConnection() func(w http.ResponseWriter, r *http.
 			// Make sure we close the connection when the function returns
 			defer ws.Close()
 
+			// Send its player id to the client
 			socket.Clients[ws] = counter
-			msg := make([]byte, 1)
-			msg[0] = byte(counter)
-			log.Println(msg)
+			msg := []byte(strconv.Itoa(counter))
 			ws.WriteMessage(websocket.TextMessage, msg)
 
 			for {
-				if _, _, err := ws.NextReader(); err != nil {
-					ws.Close()
+				var msg Event
+				err := ws.ReadJSON(&msg)
+
+				if err != nil {
 					delete(socket.Clients, ws)
 					counter--
 					log.Println("Connection closed")
+					log.Println(err)
 					break
 				}
+
+				socket.Event <- msg
 			}
 		}
 	}
