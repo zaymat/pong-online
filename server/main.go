@@ -46,16 +46,17 @@ func main() {
 	ws.Event = make(chan Event)
 
 	// Handle connection to websocket
-	conn := r.PathPrefix("/conn").Subrouter()
+	conn := r.PathPrefix("/connect").Subrouter()
 	handler := ws.handleConnection()
-	conn.Methods("GET").Path("/connect").HandlerFunc(handler)
+	conn.Methods("GET").HandlerFunc(handler)
 
 	// Handle messages from Websocket
 	go ws.handleMessages()
 
 	// Handle game events
-	game := r.PathPrefix("/game").Subrouter()
-	game.Methods("POST").Path("/event").HandlerFunc(eventHandler)
+	go ws.handleEvents()
+
+	//
 
 	http.Handle("/", r)
 	fmt.Println("Server listening on port 8080 ...")
