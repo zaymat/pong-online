@@ -6,18 +6,17 @@ import (
 )
 
 // StraighLine : represented by ax+by+c=0
-type StraighLine struct {
-	a int
-	b int
-	c int
+type Speed struct {
+	vx int
+	vy int
 }
 
 // State : Represent the map status
 type State struct {
-	Player1   int
-	Player2   int
-	Ball      Pos
-	Direction StraighLine
+	Player1 int
+	Player2 int
+	Ball    Pos
+	Speed   Speed
 }
 
 // up : Update the state in case of a up command
@@ -33,14 +32,39 @@ func (s *State) down(e Event) {
 // moveBall : move the ball on the map
 func (s *State) moveBall() {
 	for {
-		log.Println("Move ball")
+		log.Println("Move ball", s.Ball, s.Speed)
+		x := s.Ball.x
+		y := s.Ball.y
+		vx := s.Speed.vx
+		vy := s.Speed.vy
 
-		time.Sleep(1 * time.Second)
+		s.Ball.x = x + vx
+		s.Ball.y = y + vy
+
+		if x < 0 || x > 512 {
+			s.Speed.vx = -1 * s.Speed.vx
+			if x < 0 {
+				s.Ball.x = 0
+			} else {
+				s.Ball.x = 511
+			}
+		}
+
+		if y < 0 || y > 256 {
+			s.Speed.vy = -1 * s.Speed.vy
+			if y < 0 {
+				s.Ball.y = 0
+			} else {
+				s.Ball.y = 255
+			}
+		}
+
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
 func (ws *WebSocket) game() {
-	state := State{256, 256, Pos{0, 0}, StraighLine{1, 1, 0}}
+	state := State{0, 0, Pos{0, 0}, Speed{1, 1}}
 	go state.moveBall()
 	for {
 		event := <-ws.Event
