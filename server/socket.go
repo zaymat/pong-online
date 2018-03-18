@@ -44,10 +44,18 @@ func (socket *WebSocket) handleConnection() func(w http.ResponseWriter, r *http.
 			defer ws.Close()
 
 			socket.Clients[ws] = counter
+			msg := make([]byte, 1)
+			msg[0] = byte(counter)
+			log.Println(msg)
+			ws.WriteMessage(websocket.TextMessage, msg)
 
 			for {
-				if socket.Clients[ws] == 0 {
+				if _, _, err := ws.NextReader(); err != nil {
+					ws.Close()
 					delete(socket.Clients, ws)
+					counter--
+					log.Println("Connection closed")
+					break
 				}
 			}
 		}
