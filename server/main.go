@@ -2,69 +2,35 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
-	"./handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
-// Message : Create message structure. Represent the map status
-type Message struct {
-	// Player1 string `json:"player1"`
-	// Player2 string `json:"player2"`
-	// Ball    string `json:"ball"`
-	Message string
+// Score : Store the score
+type Score struct {
+	Player1 int
+	Player2 int
 }
 
-// WebSocket : Create Websocket structure
-type WebSocket struct {
-	Broadcast chan Message             // Broadcasting channel
-	Clients   map[*websocket.Conn]bool // connected clients
-	Upgrader  websocket.Upgrader
+// Pos : store the position of the ball
+type Pos struct {
+	x int
+	y int
 }
 
-// handleConnection : handle connections to the websocket
-func (socket *WebSocket) handleConnection(w http.ResponseWriter, r *http.Request) {
-	ws, err := socket.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Make sure we close the connection when the function returns
-	defer ws.Close()
-
-	socket.Clients[ws] = true
-
-	for {
-		if socket.Clients[ws] == false {
-			delete(socket.Clients, ws)
-		}
-	}
-}
-
-// handleMessages : handle messages sent to the websocket
-func (socket *WebSocket) handleMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-socket.Broadcast
-
-		// Send it out to every client that is currently connected
-		for client := range socket.Clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(socket.Clients, client)
-			}
-		}
-	}
+// Game : store the game state
+type Game struct {
+	Pos1 int
+	Pos2 int
+	Ball Pos
 }
 
 func main() {
 	// Routing part
 	r := mux.NewRouter()
-	r.HandleFunc("/", home.HomeHandler)
+	r.HandleFunc("/", HomeHandler)
 
 	// Create websocket
 	var ws WebSocket
@@ -75,15 +41,21 @@ func main() {
 			return true
 		},
 	}
-	ws.Clients = make(map[*websocket.Conn]bool)
-	ws.Broadcast = make(chan Message)
+	ws.Clients = make(map[*websocket.Conn]int)
+	ws.Broadcast = make(chan State)
+	ws.Event = make(chan Event)
 
 	// Handle connection to websocket
 	conn := r.PathPrefix("/conn").Subrouter()
-	conn.Path("/connect").HandlerFunc(ws.handleConnection)
+	handler := ws.handleConnection()
+	conn.Methods("GET").Path("/connect").HandlerFunc(handler)
 
 	// Handle messages from Websocket
 	go ws.handleMessages()
+
+	// Handle game events
+	game := r.PathPrefix("/game").Subrouter()
+	game.Methods("POST").Path("/event").HandlerFunc(eventHandler)
 
 	http.Handle("/", r)
 	fmt.Println("Server listening on port 8080 ...")
