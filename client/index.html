@@ -16,6 +16,7 @@
 
 	socket.onmessage = function (e) {
         output.innerHTML += "Server: " + e.data + "\n";
+		console.log(e.data)
 	};
 
 	function send() {
