@@ -2,77 +2,144 @@ package main
 
 import (
 	"log"
+	"math/rand"
+	"net/http"
 	"time"
 )
 
-// StraighLine : represented by ax+by+c=0
+// Speed : represented by ax+by+c=0
 type Speed struct {
-	vx int
-	vy int
+	Vx int `json:"vx"`
+	Vy int `json:"vy"`
 }
 
 // State : Represent the map status
 type State struct {
-	Player1 int
-	Player2 int
-	Ball    Pos
-	Speed   Speed
+	Player1 int   `json:"player1"` // Player1 racket left high corner position (28*2)
+	Player2 int   `json:"player2"` // Player2 racket left high corner position (28*2)
+	Ball    Pos   `json:"ball"`    // Ball center position (7*7)
+	Speed   Speed `json:"speed"`   // Speed vector of the ball
+	Running bool  `json:"running"` // Check whether the game is running
 }
 
 // up : Update the state in case of a up command
 func (s *State) up(e Event) {
+	if e.Player == 1 {
+		if s.Player1 < 227 {
+			s.Player1++
+		}
+	} else {
+		if s.Player2 < 227 {
+			s.Player2++
+		}
+	}
 	log.Println("up, Player : ", e.Player)
 }
 
 // down : Update the state in case of a down command
 func (s *State) down(e Event) {
+	if e.Player == 1 {
+		if s.Player1 > 0 {
+			s.Player1--
+		}
+	} else {
+		if s.Player2 > 0 {
+			s.Player2--
+		}
+	}
 	log.Println("down, Player : ", e.Player)
 }
 
-// moveBall : move the ball on the map
-func (s *State) moveBall() {
+// moveBall : move the ball on the map. Return the ID of the winner
+func (s *State) moveBall(ws *WebSocket) int {
 	for {
-		log.Println("Move ball", s.Ball, s.Speed)
-		x := s.Ball.x
-		y := s.Ball.y
-		vx := s.Speed.vx
-		vy := s.Speed.vy
+		// Check if the game is still running
+		if s.Running == false {
+			return 0
+		}
+		x := s.Ball.X
+		y := s.Ball.Y
+		vx := s.Speed.Vx
+		vy := s.Speed.Vy
 
-		s.Ball.x = x + vx
-		s.Ball.y = y + vy
+		s.Ball.X = x + vx
+		s.Ball.Y = y + vy
 
-		if x < 0 || x > 512 {
-			s.Speed.vx = -1 * s.Speed.vx
-			if x < 0 {
-				s.Ball.x = 0
+		x = s.Ball.X
+		y = s.Ball.Y
+
+		if x < 2 || x > 509 {
+			if x < 2 {
+				if y >= s.Player1 && y <= s.Player1+28 {
+					s.Ball.X = 2
+					s.Speed.Vx = -1 * s.Speed.Vx
+				} else {
+					s.Ball.X = 0
+					return 2
+				}
 			} else {
-				s.Ball.x = 511
+				if y >= s.Player2 && y <= s.Player2+28 {
+					s.Ball.X = 509
+					s.Speed.Vx = -1 * s.Speed.Vx
+				} else {
+					s.Ball.X = 511
+					return 1
+				}
 			}
 		}
 
 		if y < 0 || y > 256 {
-			s.Speed.vy = -1 * s.Speed.vy
+			s.Speed.Vy = -1 * s.Speed.Vy
 			if y < 0 {
-				s.Ball.y = 0
+				s.Ball.Y = 0
 			} else {
-				s.Ball.y = 255
+				s.Ball.Y = 255
 			}
 		}
-
-		time.Sleep(10 * time.Millisecond)
+		ws.Broadcast <- *s
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
+func (ws *WebSocket) startHandler(w http.ResponseWriter, r *http.Request) {
+	var e Event
+	e.Player = 0
+	e.Event = "start"
+}
+
+func (ws *WebSocket) stopHandler(w http.ResponseWriter, r *http.Request) {
+	var e Event
+	e.Player = 0
+	e.Event = "stop"
+}
+
+func (ws *WebSocket) resetHandler(w http.ResponseWriter, r *http.Request) {
+	var e Event
+	e.Player = 0
+	e.Event = "reset"
+}
+
 func (ws *WebSocket) game() {
-	state := State{0, 0, Pos{0, 0}, Speed{1, 1}}
-	go state.moveBall()
+	r := rand.New(rand.NewSource((time.Now()).Unix()))
+	x := r.Intn(505) + 3
+	y := r.Intn(255)
+	state := State{0, 0, Pos{x, y}, Speed{1, 1}, false}
+
 	for {
-		event := <-ws.Event
-		switch event.Event {
+		switch event := <-ws.Event; event.Event {
 		case "up":
 			state.up(event)
 		case "down":
 			state.down(event)
+		case "start":
+			state.Running = true
+			go state.moveBall(ws)
+		case "stop":
+			state.Running = false
+		case "reset":
+			x := r.Intn(505) + 3
+			y := r.Intn(255)
+			state = State{0, 0, Pos{x, y}, Speed{1, 1}, false}
 		default:
 			log.Println("Unknown command")
 		}

@@ -65,7 +65,7 @@ func (socket *WebSocket) handleMessages() {
 	for {
 		// Grab the next message from the broadcast channel
 		msg := <-socket.Broadcast
-
+		log.Println(msg)
 		// Send it out to every client that is currently connected
 		for client := range socket.Clients {
 			err := client.WriteJSON(msg)

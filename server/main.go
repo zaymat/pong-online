@@ -16,15 +16,8 @@ type Score struct {
 
 // Pos : store the position of the ball
 type Pos struct {
-	x int
-	y int
-}
-
-// Game : store the game state
-type Game struct {
-	Pos1 int
-	Pos2 int
-	Ball Pos
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 func main() {
@@ -54,6 +47,10 @@ func main() {
 	go ws.handleMessages()
 
 	// hangle game events
+	game := r.PathPrefix("/game").Subrouter()
+	game.Methods("GET").Path("/start").HandlerFunc(ws.startHandler)
+	game.Methods("GET").Path("/stop").HandlerFunc(ws.stopHandler)
+	game.Methods("GET").Path("/reset").HandlerFunc(ws.resetHandler)
 	go ws.game()
 
 	http.Handle("/", r)
