@@ -137,6 +137,16 @@ func main() {
 					e.Player = player
 					// Send down event to the server
 					c.WriteJSON(&e)
+				case sdl.SCANCODE_S:
+					e.Event = "start"
+					e.Player = player
+					// Send down event to the server
+					c.WriteJSON(&e)
+				case sdl.SCANCODE_R:
+					e.Event = "reset"
+					e.Player = player
+					// Send down event to the server
+					c.WriteJSON(&e)
 				}
 
 			}
