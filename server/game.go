@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math/rand"
-	"net/http"
 	"time"
 )
 
@@ -70,10 +69,10 @@ func (s *State) moveBall(ws *WebSocket) int {
 		y = s.Ball.Y
 
 		// Check collisions
-		if x < 5 || x > 506 {
-			if x < 5 {
+		if x < 2 || x > 502 {
+			if x < 2 {
 				if y >= s.Player1 && y <= s.Player1+28 {
-					s.Ball.X = 5
+					s.Ball.X = 2
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
 					s.Ball.X = 0
@@ -81,7 +80,7 @@ func (s *State) moveBall(ws *WebSocket) int {
 				}
 			} else {
 				if y >= s.Player2 && y <= s.Player2+28 {
-					s.Ball.X = 506
+					s.Ball.X = 502
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
 					s.Ball.X = 511
@@ -90,39 +89,18 @@ func (s *State) moveBall(ws *WebSocket) int {
 			}
 		}
 
-		if y < 3 || y > 253 {
+		if y < 0 || y > 248 {
 			s.Speed.Vy = -1 * s.Speed.Vy
 			if y < 3 {
-				s.Ball.Y = 3
+				s.Ball.Y = 0
 			} else {
-				s.Ball.Y = 252
+				s.Ball.Y = 248
 			}
 		}
 		// Send a new state to the client
 		ws.Broadcast <- *s
 		time.Sleep(20 * time.Millisecond)
 	}
-}
-
-// Start the game
-func (ws *WebSocket) startHandler(w http.ResponseWriter, r *http.Request) {
-	var e Event
-	e.Player = 0
-	e.Event = "start"
-}
-
-// Stop the game
-func (ws *WebSocket) stopHandler(w http.ResponseWriter, r *http.Request) {
-	var e Event
-	e.Player = 0
-	e.Event = "stop"
-}
-
-// Reset the game (new game)
-func (ws *WebSocket) resetHandler(w http.ResponseWriter, r *http.Request) {
-	var e Event
-	e.Player = 0
-	e.Event = "reset"
 }
 
 // Handle events from client
@@ -147,6 +125,7 @@ func (ws *WebSocket) game() {
 			x := r.Intn(505) + 3
 			y := r.Intn(255)
 			state = State{0, 0, Pos{x, y}, Speed{1, 1}, false}
+			ws.Broadcast <- state
 		default:
 			log.Println("Unknown command")
 		}
