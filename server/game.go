@@ -68,10 +68,10 @@ func (s *State) moveBall(ws *WebSocket) int {
 		x = s.Ball.X
 		y = s.Ball.Y
 
-		if x < 2 || x > 509 {
-			if x < 2 {
+		if x < 5 || x > 506 {
+			if x < 5 {
 				if y >= s.Player1 && y <= s.Player1+28 {
-					s.Ball.X = 2
+					s.Ball.X = 5
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
 					s.Ball.X = 0
@@ -79,7 +79,7 @@ func (s *State) moveBall(ws *WebSocket) int {
 				}
 			} else {
 				if y >= s.Player2 && y <= s.Player2+28 {
-					s.Ball.X = 509
+					s.Ball.X = 506
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
 					s.Ball.X = 511
@@ -88,16 +88,16 @@ func (s *State) moveBall(ws *WebSocket) int {
 			}
 		}
 
-		if y < 0 || y > 256 {
+		if y < 3 || y > 253 {
 			s.Speed.Vy = -1 * s.Speed.Vy
 			if y < 0 {
-				s.Ball.Y = 0
+				s.Ball.Y = 3
 			} else {
-				s.Ball.Y = 255
+				s.Ball.Y = 252
 			}
 		}
 		ws.Broadcast <- *s
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
