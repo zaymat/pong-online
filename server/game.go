@@ -26,11 +26,11 @@ type State struct {
 func (s *State) up(e Event) {
 	if e.Player == 1 {
 		if s.Player1 < 227 {
-			s.Player1++
+			s.Player1 += 6
 		}
 	} else {
 		if s.Player2 < 227 {
-			s.Player2++
+			s.Player2 += 6
 		}
 	}
 	log.Println("up, Player : ", e.Player)
@@ -40,11 +40,11 @@ func (s *State) up(e Event) {
 func (s *State) down(e Event) {
 	if e.Player == 1 {
 		if s.Player1 > 0 {
-			s.Player1--
+			s.Player1 -= 6
 		}
 	} else {
 		if s.Player2 > 0 {
-			s.Player2--
+			s.Player2 -= 6
 		}
 	}
 	log.Println("down, Player : ", e.Player)
@@ -90,14 +90,14 @@ func (s *State) moveBall(ws *WebSocket) int {
 
 		if y < 3 || y > 253 {
 			s.Speed.Vy = -1 * s.Speed.Vy
-			if y < 0 {
+			if y < 3 {
 				s.Ball.Y = 3
 			} else {
 				s.Ball.Y = 252
 			}
 		}
 		ws.Broadcast <- *s
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
