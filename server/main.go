@@ -47,12 +47,9 @@ func main() {
 	go ws.handleMessages()
 
 	// hangle game events
-	game := r.PathPrefix("/game").Subrouter()
-	game.Methods("GET").Path("/start").HandlerFunc(ws.startHandler)
-	game.Methods("GET").Path("/stop").HandlerFunc(ws.stopHandler)
-	game.Methods("GET").Path("/reset").HandlerFunc(ws.resetHandler)
 	go ws.game()
 
+	// Serve the API
 	http.Handle("/", r)
 	fmt.Println("Server listening on port 8080 ...")
 	http.ListenAndServe(":8080", r)

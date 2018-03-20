@@ -32,38 +32,51 @@ type Event struct {
 func handleMessage(state *chan Map, c *websocket.Conn) {
 	var msg Map
 	for {
+		// Read message from websocket
 		err := c.ReadJSON(&msg)
 		if err != nil {
 			log.Println("error: ", err)
 			return
 		}
+		// Send the message to the drawMAp routine
 		*state <- msg
 	}
 }
 
 func drawMap(s *chan Map, window *sdl.Window) {
+	// Setup drawing surface
 	surface, err := window.GetSurface()
 	if err != nil {
 		panic(err)
 	}
+	// Wipe the screen
 	surface.FillRect(nil, 0)
 
 	for {
+		// Read a message from the chan
 		msg := <-*s
 
+		// Wipe the screen
 		surface.FillRect(nil, 0)
+
+		// Create the 2 rackets and the ball
 		player1 := sdl.Rect{0, int32(msg.Player1), 2, 28}
 		player2 := sdl.Rect{509, int32(msg.Player2), 2, 28}
 		ball := sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y), 7, 7}
+
+		// Fill the rectangles in white
 		surface.FillRect(&player1, 0xffffff00)
 		surface.FillRect(&player2, 0xffffff00)
 		surface.FillRect(&ball, 0xffffff00)
+
+		// Update graphics
 		window.UpdateSurface()
 	}
 }
 
 func main() {
 
+	// Connect to the websocket
 	u := url.URL{Scheme: "ws", Host: "localhost:8080", Path: "/connect"}
 	log.Printf("connecting to %s", u.String())
 
@@ -73,45 +86,56 @@ func main() {
 	}
 	defer c.Close()
 
+	// Create the state chan to handle state changes from server
 	state := make(chan Map)
 
+	// Read the first message (player ID)
 	_, message, err := c.ReadMessage()
 	player, _ := strconv.Atoi(string(message))
 	log.Println(player)
 
+	// Init SDL for graphics
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+	// Create the window (size 512*256)
+	window, err := sdl.CreateWindow("Pong client", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		512, 256, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
 	defer window.Destroy()
 
+	// Go routine to handle state change and graphical interface
 	go handleMessage(&state, c)
 	go drawMap(&state, window)
 
+	// Event loop
 	running := true
 	for running {
 		var e Event
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
+			// Checl whether the window is closed by the user
 			case *sdl.QuitEvent:
 				println("Quit")
 				running = false
 				break
 			case *sdl.KeyboardEvent:
 				switch t.Keysym.Scancode {
-				case sdl.SCANCODE_A:
+				// Check if the key pressed is UP
+				case sdl.SCANCODE_UP:
 					e.Event = "up"
 					e.Player = player
+					// Send up event to the server
 					c.WriteJSON(&e)
-				case sdl.SCANCODE_Q:
+				// Check if the key pressed is DOWN
+				case sdl.SCANCODE_DOWN:
 					e.Event = "down"
 					e.Player = player
+					// Send down event to the server
 					c.WriteJSON(&e)
 				}
 

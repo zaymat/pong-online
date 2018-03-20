@@ -62,12 +62,14 @@ func (s *State) moveBall(ws *WebSocket) int {
 		vx := s.Speed.Vx
 		vy := s.Speed.Vy
 
+		// Change ball position according to speed vector
 		s.Ball.X = x + vx
 		s.Ball.Y = y + vy
 
 		x = s.Ball.X
 		y = s.Ball.Y
 
+		// Check collisions
 		if x < 5 || x > 506 {
 			if x < 5 {
 				if y >= s.Player1 && y <= s.Player1+28 {
@@ -96,29 +98,34 @@ func (s *State) moveBall(ws *WebSocket) int {
 				s.Ball.Y = 252
 			}
 		}
+		// Send a new state to the client
 		ws.Broadcast <- *s
 		time.Sleep(20 * time.Millisecond)
 	}
 }
 
+// Start the game
 func (ws *WebSocket) startHandler(w http.ResponseWriter, r *http.Request) {
 	var e Event
 	e.Player = 0
 	e.Event = "start"
 }
 
+// Stop the game
 func (ws *WebSocket) stopHandler(w http.ResponseWriter, r *http.Request) {
 	var e Event
 	e.Player = 0
 	e.Event = "stop"
 }
 
+// Reset the game (new game)
 func (ws *WebSocket) resetHandler(w http.ResponseWriter, r *http.Request) {
 	var e Event
 	e.Player = 0
 	e.Event = "reset"
 }
 
+// Handle events from client
 func (ws *WebSocket) game() {
 	r := rand.New(rand.NewSource((time.Now()).Unix()))
 	x := r.Intn(505) + 3
