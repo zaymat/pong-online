@@ -21,8 +21,8 @@ type State struct {
 	Running bool  `json:"running"` // Check whether the game is running
 }
 
-// up : Update the state in case of a up command
-func (s *State) up(e Event) {
+// down : Update the state in case of a down command
+func (s *State) down(e Event) {
 	if e.Player == 1 {
 		if s.Player1 < 227 {
 			s.Player1 += 6
@@ -32,11 +32,11 @@ func (s *State) up(e Event) {
 			s.Player2 += 6
 		}
 	}
-	log.Println("up, Player : ", e.Player)
+	log.Println("down, Player : ", e.Player)
 }
 
-// down : Update the state in case of a down command
-func (s *State) down(e Event) {
+// up : Update the state in case of a up command
+func (s *State) up(e Event) {
 	if e.Player == 1 {
 		if s.Player1 > 0 {
 			s.Player1 -= 6
@@ -46,7 +46,7 @@ func (s *State) down(e Event) {
 			s.Player2 -= 6
 		}
 	}
-	log.Println("down, Player : ", e.Player)
+	log.Println("up, Player : ", e.Player)
 }
 
 // moveBall : move the ball on the map. Return the ID of the winner

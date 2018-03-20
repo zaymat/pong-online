@@ -140,17 +140,20 @@ func main() {
 				case sdl.SCANCODE_S:
 					e.Event = "start"
 					e.Player = player
-					// Send down event to the server
+					// Send start event to the server
 					c.WriteJSON(&e)
 				case sdl.SCANCODE_R:
 					e.Event = "reset"
 					e.Player = player
-					// Send down event to the server
+					// Send reset event to the server
+					c.WriteJSON(&e)
+				case sdl.SCANCODE_P:
+					e.Event = "stop"
+					e.Player = player
+					// Send pause event to the server
 					c.WriteJSON(&e)
 				}
-
 			}
-
 		}
 	}
 }
