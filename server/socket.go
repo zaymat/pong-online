@@ -24,38 +24,61 @@ type WebSocket struct {
 
 // handleConnection : handle connections to the websocket
 func (socket *WebSocket) handleConnection() func(w http.ResponseWriter, r *http.Request) {
-	counter := 0
+	counter := make([]int, 0, 2)
+	id := 0
 	return func(w http.ResponseWriter, r *http.Request) {
-		counter++
-		if counter > 2 {
-			log.Println("Too many clients")
-		} else {
-			ws, err := socket.Upgrader.Upgrade(w, r, nil)
-			if err != nil {
-				log.Fatal(err)
+		// Manage player ids
+		if len(counter) == 0 {
+			counter = append(counter, 1)
+			id = 1
+		} else if len(counter) == 1 {
+			player := counter[0]
+			if player == 1 {
+				counter = append(counter, 2)
+				id = 2
+			} else {
+				counter = append(counter, 1)
+				id = 1
 			}
-			// Make sure we close the connection when the function returns
-			defer ws.Close()
+		} else {
+			log.Println("Too many clients")
+			return
+		}
 
-			// Send its player id to the client
-			socket.Clients[ws] = counter
-			msg := []byte(strconv.Itoa(counter))
-			ws.WriteMessage(websocket.TextMessage, msg)
+		// Staert websocket
+		ws, err := socket.Upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Make sure we close the connection when the function returns
+		defer ws.Close()
 
-			for {
-				var msg Event
-				err := ws.ReadJSON(&msg)
+		// Send its player id to the client
+		socket.Clients[ws] = id
+		msg := []byte(strconv.Itoa(id))
+		ws.WriteMessage(websocket.TextMessage, msg)
 
-				if err != nil {
-					delete(socket.Clients, ws)
-					counter--
-					log.Println("Connection closed")
-					log.Println(err)
-					break
+		for {
+			var msg Event
+			err := ws.ReadJSON(&msg)
+
+			if err != nil {
+				// Delete session
+				id = socket.Clients[ws]
+				delete(socket.Clients, ws)
+				if len(counter) == 1 {
+					counter = make([]int, 0, 2)
+				} else {
+					counter = make([]int, 0, 2)
+					counter = append(counter, 3-id)
 				}
 
-				socket.Event <- msg
+				log.Println("Connection closed")
+				log.Println(err)
+				break
 			}
+
+			socket.Event <- msg
 		}
 	}
 }
