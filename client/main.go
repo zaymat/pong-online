@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net/url"
+	"strconv"
 
 	"github.com/gorilla/websocket"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 // Pos : represent a position in a cathesian coordinate system
@@ -21,6 +23,12 @@ type Map struct {
 	Running bool `json:"running"` // Check whether the game is running
 }
 
+// Event : Represent the event sent by the client
+type Event struct {
+	Player int    // ID of the player
+	Event  string // Event : down or up
+}
+
 func handleMessage(state *chan Map, c *websocket.Conn) {
 	var msg Map
 	for {
@@ -33,10 +41,24 @@ func handleMessage(state *chan Map, c *websocket.Conn) {
 	}
 }
 
-func drawMap(s *chan Map) {
+func drawMap(s *chan Map, window *sdl.Window) {
+	surface, err := window.GetSurface()
+	if err != nil {
+		panic(err)
+	}
+	surface.FillRect(nil, 0)
+
 	for {
 		msg := <-*s
-		log.Println(msg)
+
+		surface.FillRect(nil, 0)
+		player1 := sdl.Rect{0, int32(msg.Player1), 2, 28}
+		player2 := sdl.Rect{509, int32(msg.Player2), 2, 28}
+		ball := sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y), 7, 7}
+		surface.FillRect(&player1, 0xffffff00)
+		surface.FillRect(&player2, 0xffffff00)
+		surface.FillRect(&ball, 0xffffff00)
+		window.UpdateSurface()
 	}
 }
 
@@ -54,13 +76,47 @@ func main() {
 	state := make(chan Map)
 
 	_, message, err := c.ReadMessage()
-	player := string(message)
+	player, _ := strconv.Atoi(string(message))
 	log.Println(player)
 
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		panic(err)
+	}
+	defer sdl.Quit()
+
+	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+		512, 256, sdl.WINDOW_SHOWN)
+	if err != nil {
+		panic(err)
+	}
+	defer window.Destroy()
+
 	go handleMessage(&state, c)
-	go drawMap(&state)
+	go drawMap(&state, window)
 
-	for {
+	running := true
+	for running {
+		var e Event
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch t := event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				running = false
+				break
+			case *sdl.KeyboardEvent:
+				switch t.Keysym.Scancode {
+				case sdl.SCANCODE_A:
+					e.Event = "up"
+					e.Player = player
+					c.WriteJSON(&e)
+				case sdl.SCANCODE_Q:
+					e.Event = "down"
+					e.Player = player
+					c.WriteJSON(&e)
+				}
 
+			}
+
+		}
 	}
 }
