@@ -12,8 +12,8 @@ import (
 
 // Pos : represent a position in a cathesian coordinate system
 type Pos struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 
 // Map : represent the state of the map
@@ -22,6 +22,7 @@ type Map struct {
 	Player2 int  `json:"player2"` // Player2 racket left high corner position (28*2)
 	Ball    Pos  `json:"ball"`    // Ball center position (7*7)
 	Running bool `json:"running"` // Check whether the game is running
+	Speed   Pos  `json:"speed"`   // Ball speed
 }
 
 // Event : Represent the event sent by the client
@@ -63,7 +64,13 @@ func drawMap(s *chan Map, window *sdl.Window) {
 		// Create the 2 rackets and the ball
 		player1 := sdl.Rect{0, int32(msg.Player1), 2, 28}
 		player2 := sdl.Rect{509, int32(msg.Player2), 2, 28}
-		ball := sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y), 7, 7}
+
+		var ball sdl.Rect
+		if msg.Speed.Y < 0 {
+			ball = sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y) - 1, 7, 7}
+		} else {
+			ball = sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y), 7, 7}
+		}
 
 		// Fill the rectangles in white
 		surface.FillRect(&player1, 0xffffff00)
