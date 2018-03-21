@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/url"
 	"strconv"
@@ -76,8 +77,15 @@ func drawMap(s *chan Map, window *sdl.Window) {
 
 func main() {
 
+	// Parse flags
+	host := flag.String("host", "localhost", "server url")
+	port := flag.Int("port", 8080, "server port")
+
+	flag.Parse()
+
+	hostname := *host + ":" + strconv.Itoa(*port)
 	// Connect to the websocket
-	u := url.URL{Scheme: "ws", Host: "localhost:8080", Path: "/connect"}
+	u := url.URL{Scheme: "ws", Host: hostname, Path: "/connect"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
