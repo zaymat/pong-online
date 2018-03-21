@@ -25,11 +25,11 @@ type State struct {
 func (s *State) down(e Event) {
 	if e.Player == 1 {
 		if s.Player1 < 227 {
-			s.Player1 += 6
+			s.Player1 += 10
 		}
 	} else {
 		if s.Player2 < 227 {
-			s.Player2 += 6
+			s.Player2 += 10
 		}
 	}
 	log.Println("down, Player : ", e.Player)
@@ -39,11 +39,11 @@ func (s *State) down(e Event) {
 func (s *State) up(e Event) {
 	if e.Player == 1 {
 		if s.Player1 > 0 {
-			s.Player1 -= 6
+			s.Player1 -= 10
 		}
 	} else {
 		if s.Player2 > 0 {
-			s.Player2 -= 6
+			s.Player2 -= 10
 		}
 	}
 	log.Println("up, Player : ", e.Player)
@@ -71,7 +71,7 @@ func (s *State) moveBall(ws *WebSocket) int {
 		// Check collisions
 		if x < 2 || x > 502 {
 			if x < 2 {
-				if y >= s.Player1 && y <= s.Player1+28 {
+				if y+7 >= s.Player1 && y <= s.Player1+28 {
 					s.Ball.X = 2
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
@@ -79,7 +79,7 @@ func (s *State) moveBall(ws *WebSocket) int {
 					return 2
 				}
 			} else {
-				if y >= s.Player2 && y <= s.Player2+28 {
+				if y+7 >= s.Player2 && y <= s.Player2+28 {
 					s.Ball.X = 502
 					s.Speed.Vx = -1 * s.Speed.Vx
 				} else {
@@ -125,10 +125,10 @@ func (ws *WebSocket) game() {
 			x := r.Intn(505) + 3
 			y := r.Intn(255)
 			state = State{0, 0, Pos{x, y}, Speed{1, 1}, false}
-			ws.Broadcast <- state
 		default:
 			log.Println("Unknown command")
 		}
+		ws.Broadcast <- state
 	}
 
 }
