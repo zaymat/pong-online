@@ -23,6 +23,7 @@ type Map struct {
 	Ball    Pos  `json:"ball"`    // Ball center position (7*7)
 	Running bool `json:"running"` // Check whether the game is running
 	Speed   Pos  `json:"speed"`   // Ball speed
+	Winner  int  `json:"winner"`  // Winner id
 }
 
 // Event : Represent the event sent by the client
@@ -31,7 +32,7 @@ type Event struct {
 	Event  string // Event : down or up
 }
 
-func handleMessage(state *chan Map, c *websocket.Conn) {
+func handleMessage(state *chan Map, c *websocket.Conn, player int) {
 	var msg Map
 	for {
 		// Read message from websocket
@@ -40,8 +41,18 @@ func handleMessage(state *chan Map, c *websocket.Conn) {
 			log.Println("error: ", err)
 			return
 		}
-		// Send the message to the drawMAp routine
-		*state <- msg
+
+		// Check if a player wins
+		if msg.Winner != 0 {
+			if msg.Winner == player {
+				log.Println("You win")
+			} else {
+				log.Println("You lose")
+			}
+		} else {
+			// Send the message to the drawMAp routine
+			*state <- msg
+		}
 	}
 }
 
@@ -124,7 +135,7 @@ func main() {
 	defer window.Destroy()
 
 	// Go routine to handle state change and graphical interface
-	go handleMessage(&state, c)
+	go handleMessage(&state, c, player)
 	go drawMap(&state, window)
 
 	// Event loop

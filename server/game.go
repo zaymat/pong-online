@@ -20,6 +20,7 @@ type State struct {
 	Ball    Pos   `json:"ball"`    // Ball center position (7*7)
 	Speed   Speed `json:"speed"`   // Speed vector of the ball
 	Running bool  `json:"running"` // Check whether the game is running
+	Winner  int   `json:"winner"`  // Is winner is different from 0, it represents the winner id
 }
 
 // down : Update the state in case of a down command
@@ -49,11 +50,11 @@ func (s *State) up(e Event) {
 }
 
 // moveBall : move the ball on the map. Return the ID of the winner
-func (s *State) moveBall(ws *WebSocket) int {
+func (s *State) moveBall(ws *WebSocket) {
 	for {
 		// Check if the game is still running
 		if s.Running == false {
-			return 0
+			return
 		}
 		x := s.Ball.X
 		y := s.Ball.Y
@@ -76,7 +77,8 @@ func (s *State) moveBall(ws *WebSocket) int {
 					s.Speed.Vy = (0.7 + 0.05*math.Abs(float64(s.Player1)+10.0-y)) * s.Speed.Vy / math.Abs(s.Speed.Vy)
 				} else {
 					s.Ball.X = 0
-					return 2
+					s.Winner = 2
+					return
 				}
 			} else {
 				if int(y+7) >= s.Player2 && int(y) <= s.Player2+28 {
@@ -85,7 +87,8 @@ func (s *State) moveBall(ws *WebSocket) int {
 					s.Speed.Vy = (0.7 + 0.05*math.Abs(float64(s.Player2)+10.0-y)) * s.Speed.Vy / math.Abs(s.Speed.Vy)
 				} else {
 					s.Ball.X = 511
-					return 1
+					s.Winner = 1
+					return
 				}
 			}
 		}
@@ -98,8 +101,6 @@ func (s *State) moveBall(ws *WebSocket) int {
 				s.Ball.Y = 248
 			}
 		}
-		// Send a new state to the client
-		ws.Broadcast <- *s
 		time.Sleep(20 * time.Millisecond)
 	}
 }
@@ -109,7 +110,7 @@ func (ws *WebSocket) game() {
 	r := rand.New(rand.NewSource((time.Now()).Unix()))
 	x := float64(r.Intn(505) + 3)
 	y := float64(r.Intn(248))
-	state := State{0, 0, Pos{x, y}, Speed{1, 1}, false}
+	state := State{0, 0, Pos{x, y}, Speed{1, 1}, false, 0}
 
 	for {
 		switch event := <-ws.Event; event.Event {
@@ -125,7 +126,7 @@ func (ws *WebSocket) game() {
 		case "reset":
 			x := float64(r.Intn(505) + 3)
 			y := float64(r.Intn(248))
-			state = State{0, 0, Pos{x, y}, Speed{1, 1}, false}
+			state = State{0, 0, Pos{x, y}, Speed{1, 1}, false, 0}
 		default:
 			log.Println("Unknown command")
 		}
