@@ -19,14 +19,14 @@ func drawMap(s *chan Board, window *sdl.Window) {
 		surface.FillRect(nil, 0)
 
 		// Create the 2 rackets and the ball
-		player1 := sdl.Rect{0, int32(msg.Player1), 2, 28}
-		player2 := sdl.Rect{509, int32(msg.Player2), 2, 28}
+		player1 := sdl.Rect{X: 0, Y: int32(msg.Player1), W: 2, H: 28}
+		player2 := sdl.Rect{X: 509, Y: int32(msg.Player2), W: 2, H: 28}
 
 		var ball sdl.Rect
 		if msg.Speed.Y < 0 {
-			ball = sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y) - 1, 7, 7}
+			ball = sdl.Rect{X: int32(msg.Ball.X), Y: int32(msg.Ball.Y) - 1, W: 7, H: 7}
 		} else {
-			ball = sdl.Rect{int32(msg.Ball.X), int32(msg.Ball.Y), 7, 7}
+			ball = sdl.Rect{X: int32(msg.Ball.X), Y: int32(msg.Ball.Y), W: 7, H: 7}
 		}
 
 		// Fill the rectangles in white
