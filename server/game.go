@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/rand"
 	"time"
+
+	"agones.dev/agones/sdks/go"
 )
 
 // Speed : represented by ax+by+c=0
@@ -102,16 +104,16 @@ func (s *State) moveBall(ws *WebSocket) {
 			}
 		}
 		time.Sleep(20 * time.Millisecond)
+		ws.Broadcast <- *s
 	}
 }
 
 // Handle events from client
-func (ws *WebSocket) game() {
+func (ws *WebSocket) game(sdk *sdk.SDK) {
 	r := rand.New(rand.NewSource((time.Now()).Unix()))
 	x := float64(r.Intn(505) + 3)
 	y := float64(r.Intn(248))
 	state := State{0, 0, Pos{x, y}, Speed{1, 1}, false, 0}
-
 	for {
 		switch event := <-ws.Event; event.Event {
 		case "up":
@@ -123,6 +125,10 @@ func (ws *WebSocket) game() {
 			go state.moveBall(ws)
 		case "stop":
 			state.Running = false
+			err := sdk.Shutdown()
+			if err != nil {
+				log.Println("Unable to shutdown")
+			}
 		case "reset":
 			x := float64(r.Intn(505) + 3)
 			y := float64(r.Intn(248))
