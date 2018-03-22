@@ -9,22 +9,6 @@ import (
 	"agones.dev/agones/sdks/go"
 )
 
-// Speed : represented by ax+by+c=0
-type Speed struct {
-	Vx float64 `json:"vx"`
-	Vy float64 `json:"vy"`
-}
-
-// State : Represent the map status
-type State struct {
-	Player1 int   `json:"player1"` // Player1 racket left high corner position (28*2)
-	Player2 int   `json:"player2"` // Player2 racket left high corner position (28*2)
-	Ball    Pos   `json:"ball"`    // Ball center position (7*7)
-	Speed   Speed `json:"speed"`   // Speed vector of the ball
-	Running bool  `json:"running"` // Check whether the game is running
-	Winner  int   `json:"winner"`  // Is winner is different from 0, it represents the winner id
-}
-
 // down : Update the state in case of a down command
 func (s *State) down(e Event) {
 	if e.Player == 1 {

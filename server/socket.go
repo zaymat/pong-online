@@ -8,20 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Event : Represent the event sent by the client
-type Event struct {
-	Player int    // ID of the player
-	Event  string // Event : down or up
-}
-
-// WebSocket : Create Websocket structure
-type WebSocket struct {
-	Broadcast chan State              // Broadcasting channel
-	Event     chan Event              // Event channel
-	Clients   map[*websocket.Conn]int // connected clients : int is 0 (if client is disconnected), 1 or 2.
-	Upgrader  websocket.Upgrader
-}
-
 // handleConnection : handle connections to the websocket
 func (socket *WebSocket) handleConnection() func(w http.ResponseWriter, r *http.Request) {
 	counter := make([]int, 0, 2)

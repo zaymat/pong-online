@@ -9,18 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Score : Store the score
-type Score struct {
-	Player1 int
-	Player2 int
-}
-
-// Pos : store the position of the ball
-type Pos struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
-}
-
 func main() {
 	// Routing part
 	r := mux.NewRouter()
