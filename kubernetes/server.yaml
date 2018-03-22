@@ -1,0 +1,16 @@
+apiVersion: "stable.agones.dev/v1alpha1"
+kind: GameServer
+metadata:
+  name: "pong"
+spec:
+  container: pong-server
+  portPolicy: "static"
+  containerPort: 8081
+  hostPort: 8081
+  protocol: TCP
+  template:
+    spec:
+      containers:
+      - name: pong-server
+        image: pong
+        imagePullPolicy: Never
