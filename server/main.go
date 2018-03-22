@@ -41,8 +41,7 @@ func main() {
 
 	// Handle connection to websocket
 	conn := r.PathPrefix("/connect").Subrouter()
-	handler := ws.handleConnection()
-	conn.Methods("GET").HandlerFunc(handler)
+	conn.Methods("GET").HandlerFunc(ws.handleConnection())
 
 	// Handle messages from Websocket
 	go ws.handleMessages()
