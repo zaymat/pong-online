@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -14,11 +15,12 @@ func main() {
 
 	// Parse flags
 	host := flag.String("host", "localhost", "server url")
-	port := flag.Int("port", 8080, "server port")
+	port := flag.Int("port", 8081, "server port")
 
 	flag.Parse()
 
-	hostname := *host + ":" + strconv.Itoa(*port)
+	hostname := fmt.Sprintf("%v:%v", *host, *port)
+
 	// Connect to the websocket
 	u := url.URL{Scheme: "ws", Host: hostname, Path: "/connect"}
 	log.Printf("connecting to %s", u.String())
