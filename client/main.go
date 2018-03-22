@@ -30,7 +30,7 @@ func main() {
 	defer c.Close()
 
 	// Create the state chan to handle state changes from server
-	state := make(chan Map)
+	state := make(chan Board)
 
 	// Read the first message (player ID)
 	_, message, err := c.ReadMessage()

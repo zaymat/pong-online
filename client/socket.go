@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func handleMessage(state *chan Map, c *websocket.Conn, player int) {
-	var msg Map
+func handleMessage(state *chan Board, c *websocket.Conn, player int) {
+	var msg Board
 	for {
 		// Read message from websocket
 		err := c.ReadJSON(&msg)

@@ -6,8 +6,8 @@ type Pos struct {
 	Y float64
 }
 
-// Map : represent the state of the map
-type Map struct {
+// Board : represent the state of the map
+type Board struct {
 	Player1 int  `json:"player1"` // Player1 racket left high corner position (28*2)
 	Player2 int  `json:"player2"` // Player2 racket left high corner position (28*2)
 	Ball    Pos  `json:"ball"`    // Ball center position (7*7)

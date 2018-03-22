@@ -2,7 +2,7 @@ package main
 
 import "github.com/veandco/go-sdl2/sdl"
 
-func drawMap(s *chan Map, window *sdl.Window) {
+func drawMap(s *chan Board, window *sdl.Window) {
 	// Setup drawing surface
 	surface, err := window.GetSurface()
 	if err != nil {
