@@ -31,7 +31,7 @@ func (socket *WebSocket) handleConnection() func(w http.ResponseWriter, r *http.
 			return
 		}
 
-		// Staert websocket
+		// Start websocket
 		ws, err := socket.Upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Fatal(err)
