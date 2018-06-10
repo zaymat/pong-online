@@ -1,0 +1,25 @@
+apiVersion: "stable.agones.dev/v1alpha1"
+kind: Fleet
+metadata:
+  name: fleet-pong
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%  
+  template:
+    spec:
+      portPolicy: "dynamic"
+      protocol: TCP
+      containerPort: 8081
+      health:
+        initialDelaySeconds: 30
+        periodSeconds: 60
+      template:
+        spec:
+          containers:
+          - name: pong-server
+            image: pong
+            imagePullPolicy: Never

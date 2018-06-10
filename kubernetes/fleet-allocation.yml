@@ -1,0 +1,6 @@
+apiVersion: "stable.agones.dev/v1alpha1"
+kind: FleetAllocation
+metadata:
+  generateName: fleet-allocation-pong-
+spec:
+  fleetName: fleet-pong
