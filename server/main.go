@@ -55,5 +55,5 @@ func main() {
 	// Serve the API
 	http.Handle("/", r)
 	log.Println("Server listening on port 8081 ...")
-	http.ListenAndServe(":8081", r)
+	http.ListenAndServe("0.0.0.0:8081", r)
 }
